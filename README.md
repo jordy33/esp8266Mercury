@@ -1,3 +1,3 @@
 ### DWIM MERCURY ###
 
-* First Attenpt
+* First Attempt
