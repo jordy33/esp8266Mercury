@@ -9,7 +9,8 @@
 // ESP-01 users please note: the only pins available (0 and 2), are shared 
 // with the bootloader, so always set them HIGH at power-up
 #define TRIGGER_PIN 12
-
+#define LED_PIN 4
+#define BUTTON_PIN 5
 // MQTT
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
@@ -18,6 +19,8 @@
 #define AIO_SERVERPORT  1883                   // use 8883 for SSL
 #define AIO_USERNAME    "dwim"
 #define AIO_KEY         "gpscontrol1"
+
+
 // Create an ESP8266 WiFiClient class to connect to the MQTT server.
 WiFiClient client;
 // or... use WiFiFlientSecure for SSL
@@ -25,7 +28,7 @@ WiFiClient client;
 // Setup the MQTT client class by passing in the WiFi client and MQTT server and login details.
 Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
 // Setup a feed called 'onoff' for subscribing to changes.
-Adafruit_MQTT_Publish photocell = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/photocell");
+Adafruit_MQTT_Publish button = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/button");
 Adafruit_MQTT_Subscribe onoffbutton = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/onoff");
 void MQTT_connect();
 void setup() {
@@ -34,6 +37,7 @@ void setup() {
   Serial.println("\n Starting");
 
   pinMode(TRIGGER_PIN, INPUT);
+  pinMode(LED_PIN,OUTPUT);
   mqtt.subscribe(&onoffbutton);
 }
 
@@ -88,17 +92,30 @@ void loop() {
   // put your main code here, to run repeatedly:
   MQTT_connect();
   Adafruit_MQTT_Subscribe *subscription;
-  while ((subscription = mqtt.readSubscription(5000))) {
+  while ((subscription = mqtt.readSubscription(1000))) {
     if (subscription == &onoffbutton) {
       Serial.print(F("Got: "));
       Serial.println((char *)onoffbutton.lastread);
+      if (strcmp((char *)onoffbutton.lastread,"on")==0)
+      {
+        //do stuff here because it was a match
+        //digitalWrite(LED_PIN,HIGH);
+        tone(LED_PIN,2500);
+      }
+      if (strcmp((char *)onoffbutton.lastread,"off")==0)
+      {
+        //do stuff here because it was a match
+        //digitalWrite(LED_PIN,LOW);
+        noTone(LED_PIN);
+      }
+
     }
   }
   // Now we can publish stuff!
-  Serial.print(F("\nSending photocell val "));
-  Serial.print(x);
+  Serial.print(F("\nSending button val "));
+  Serial.print(digitalRead(BUTTON_PIN));
   Serial.print("...");
-  if (! photocell.publish(x++)) {
+  if (! button.publish(digitalRead(BUTTON_PIN))) {
     Serial.println(F("Failed"));
   } else {
     Serial.println(F("OK!"));
