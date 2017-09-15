@@ -56,7 +56,7 @@ void loop() {
     //Local intialization. Once its business is done, there is no need to keep it around
     WiFiManager wifiManager;
     wifiManager.setAPCallback(configModeCallback);
-    wifiManager.autoConnect("Mercury", "1234");
+    wifiManager.autoConnect("MERCURY","9282792468");
     
 
     //reset settings - for testing
